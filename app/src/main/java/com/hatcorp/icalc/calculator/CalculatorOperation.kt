@@ -5,4 +5,5 @@ sealed class CalculatorOperation(val symbol: String) {
     data object Subtract : CalculatorOperation("-")
     data object Multiply : CalculatorOperation("×")
     data object Divide : CalculatorOperation("÷")
+    data object Percent : CalculatorOperation("%") // Add this line
 }
