@@ -13,6 +13,8 @@ import com.hatcorp.icalc.converter.UnitConverterViewModel // New ViewModel
 // CalculatorScreen is likely in com.hatcorp.icalc package (MainActivity.kt)
 import com.hatcorp.icalc.calculator.CalculatorViewModel
 import com.hatcorp.icalc.currency.CurrencyConverterScreen
+//import com.hatcorp.icalc.finance.InvestmentCalculatorScreen
+import com.hatcorp.icalc.finance.LoanCalculatorScreen
 
 // Removed duplicate import for com.hatcorp.icalc.converter.ConverterListScreen as it's already imported above
 
@@ -22,6 +24,8 @@ object AppRoutes {
     const val CONVERTER_LIST = "converter_list"
     const val UNIT_CONVERTER = "unit_converter/{category}"
     const val CURRENCY_CONVERTER = "currency_converter" // New route
+    const val LOAN_CALCULATOR = "loan_calculator"
+    const val INVESTMENT_CALCULATOR = "investment_calculator"
 }
 
 @Composable
@@ -52,6 +56,12 @@ fun AppNavHost(
         }
         composable(AppRoutes.CURRENCY_CONVERTER) {
             CurrencyConverterScreen()
+        }
+        composable(AppRoutes.LOAN_CALCULATOR) {
+            LoanCalculatorScreen()
+        }
+        composable(AppRoutes.INVESTMENT_CALCULATOR) {
+            //InvestmentCalculatorScreen()
         }
     }
 }
