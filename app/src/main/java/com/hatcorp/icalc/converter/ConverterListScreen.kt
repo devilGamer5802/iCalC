@@ -16,7 +16,7 @@ import com.hatcorp.icalc.AppRoutes
 
 // We will add more to this list in future chapters
 val converterCategories = listOf(
-    "Length", "Mass", "Currency", "Data", "Speed", "Temperature"
+    "Length", "Mass", "Currency", "Loan", "Investment", "Data", "Speed", "Temperature"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,10 +42,11 @@ fun ConverterListScreen(navController: NavController) { // Added navController p
         ) {
             items(converterCategories) { category ->
                 ConverterCategoryItem(category = category) {
-                    if (category == "Currency") {
-                        navController.navigate(AppRoutes.CURRENCY_CONVERTER)
-                    } else {
-                        navController.navigate("unit_converter/$category")
+                    when (category) {
+                        "Currency" -> navController.navigate(AppRoutes.CURRENCY_CONVERTER)
+                        "Loan" -> navController.navigate(AppRoutes.LOAN_CALCULATOR)
+                        "Investment" -> navController.navigate(AppRoutes.INVESTMENT_CALCULATOR)
+                        else -> navController.navigate("unit_converter/$category")
                     }
                 }
             }
