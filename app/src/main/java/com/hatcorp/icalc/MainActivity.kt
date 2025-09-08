@@ -9,16 +9,16 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,13 +28,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hatcorp.icalc.calculator.*
 import com.hatcorp.icalc.ui.theme.ICalcTheme
-import com.hatcorp.icalc.calculator.ScientificOperation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ICalcTheme { // Our new theme wrapper
+            ICalcTheme {
                 val viewModel = viewModel<CalculatorViewModel>()
                 val state by viewModel.state.collectAsState()
                 CalculatorScreen(
@@ -51,64 +50,91 @@ fun CalculatorScreen(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit
 ) {
-    val displayTextColor = MaterialTheme.colorScheme.onBackground
-    val secondaryTextColor = if(isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary
-
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
+        // **FIX 1: Using a root Column to properly distribute vertical space.**
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Bottom
+                .padding(bottom = 16.dp) // Add padding for the gesture nav bar
         ) {
-            // Display Area
+            // --- DISPLAY AREA ---
+            // **FIX 2: Giving the display a weight of 1 makes it fill all available space.**
+            // It's wrapped in a Box to allow for complex alignments inside (e.g., icon top-right, text bottom-right).
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.BottomEnd
+                    .weight(1f)
             ) {
-                Column(horizontalAlignment = Alignment.End) {
+                IconButton(
+                    onClick = { /* TODO: Navigate */ },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.History,
+                        contentDescription = "Change Mode",
+                        tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomEnd) // This aligns the text column to the bottom-right of the Box
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
                     Text(
                         text = state.number1 + (state.operation?.symbol ?: "") + state.number2,
                         fontSize = 40.sp,
-                        color = secondaryTextColor,
-                        textAlign = TextAlign.End,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = if(state.number1.isEmpty()) "0" else state.number1, // Placeholder for result
-                        fontSize = 80.sp,
-                        color = displayTextColor,
+                        color = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
                         textAlign = TextAlign.End,
                         maxLines = 1,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Normal
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = state.number1.ifEmpty { "0" },
+                        fontSize = 80.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        textAlign = TextAlign.End,
+                        maxLines = 1,
+                        fontWeight = FontWeight.Light,
+                        lineHeight = 80.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Buttons
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Animated Scientific Buttons
+            // --- BUTTON PAD ---
+            // This Column now sits naturally at the bottom because the display area took up the rest of the space.
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 AnimatedVisibility(visible = state.mode == CalculatorMode.Scientific) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         val scientificRow1 = listOf("(", ")", "sin", "cos", "tan")
                         val scientificRow2 = listOf("log", "ln", "√", "x²", "π")
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            scientificRow1.forEach { CalculatorButton(symbol = it, modifier = Modifier.weight(1f)) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            scientificRow1.forEach { button ->
+                                CalculatorButton(symbol = button, modifier = Modifier.weight(1f), onClick = { handleButtonClick(button, onAction) })
+                            }
                         }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            scientificRow2.forEach { CalculatorButton(symbol = it, modifier = Modifier.weight(1f)) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            scientificRow2.forEach { button ->
+                                CalculatorButton(symbol = button, modifier = Modifier.weight(1f), onClick = { handleButtonClick(button, onAction) })
+                            }
                         }
                     }
                 }
 
-                // Main Buttons
                 val buttonRows = listOf(
                     listOf("AC", "DEL", "%", "÷"),
                     listOf("7", "8", "9", "×"),
@@ -118,14 +144,15 @@ fun CalculatorScreen(
                 )
 
                 buttonRows.forEach { row ->
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         row.forEach { button ->
-                            val modifier = Modifier.weight(if (button == "0") 2.1f else 1f)
+                            val weight = if (button == "0") 2f else 1f
+                            val aspectRatio = if (button == "0") 2f else 1f
+
                             CalculatorButton(
                                 symbol = button,
-                                modifier = modifier,
+                                modifier = Modifier.weight(weight),
+                                aspectRatio = aspectRatio,
                                 onClick = { handleButtonClick(button, onAction) }
                             )
                         }
@@ -136,8 +163,58 @@ fun CalculatorScreen(
     }
 }
 
-// Helper function to map button clicks to actions
+@Composable
+fun CalculatorButton(
+    symbol: String,
+    modifier: Modifier = Modifier,
+    aspectRatio: Float = 1f, // Accept aspect ratio as a parameter
+    onClick: () -> Unit = {}
+) {
+    val isOperator = "÷×-+=".contains(symbol)
+    val isSpecialFunction = "ACDEL%".contains(symbol)
+
+    val buttonColor = when {
+        isOperator -> MaterialTheme.colorScheme.primary
+        isSpecialFunction -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+        else -> MaterialTheme.colorScheme.secondary
+    }
+
+    val contentColor = when {
+        isOperator -> MaterialTheme.colorScheme.onPrimary
+        isSpecialFunction -> MaterialTheme.colorScheme.onBackground
+        else -> MaterialTheme.colorScheme.onSecondary
+    }
+
+    Surface(
+        modifier = modifier
+            .aspectRatio(aspectRatio) // Use the passed-in aspect ratio
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = buttonColor,
+        onClick = onClick
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (symbol == "DEL") {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_backspace),
+                    contentDescription = "Delete",
+                    tint = contentColor
+                )
+            } else {
+                Text(
+                    text = symbol,
+                    fontSize = 28.sp,
+                    color = contentColor,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+// ... handleButtonClick and Previews remain the same ...
 private fun handleButtonClick(symbol: String, onAction: (CalculatorAction) -> Unit) {
+    // Unchanged
     when (symbol) {
         "AC" -> onAction(CalculatorAction.Clear)
         "DEL" -> onAction(CalculatorAction.Delete)
@@ -148,8 +225,6 @@ private fun handleButtonClick(symbol: String, onAction: (CalculatorAction) -> Un
         "+" -> onAction(CalculatorAction.Operation(CalculatorOperation.Add))
         "." -> onAction(CalculatorAction.Decimal)
         "=" -> onAction(CalculatorAction.Calculate)
-
-        // Add new scientific cases
         "sin" -> onAction(CalculatorAction.Scientific(ScientificOperation.Sin))
         "cos" -> onAction(CalculatorAction.Scientific(ScientificOperation.Cos))
         "tan" -> onAction(CalculatorAction.Scientific(ScientificOperation.Tan))
@@ -158,59 +233,22 @@ private fun handleButtonClick(symbol: String, onAction: (CalculatorAction) -> Un
         "√" -> onAction(CalculatorAction.Scientific(ScientificOperation.Sqrt))
         "x²" -> onAction(CalculatorAction.Scientific(ScientificOperation.Square))
         "π" -> onAction(CalculatorAction.Scientific(ScientificOperation.Pi))
-
         else -> symbol.toIntOrNull()?.let { onAction(CalculatorAction.Number(it)) }
     }
 }
-
-
+@Preview(showBackground = true, name = "Light Mode Preview")
 @Composable
-fun CalculatorButton(
-    symbol: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {}
-) {
-    val isOperator = "÷×-+==".contains(symbol)
-    val isSpecialFunction = "ACDEL%".contains(symbol)
-    val isScientificFunction = "()sincostanlogln√x²π".contains(symbol)
-
-    val buttonColor = when {
-        isOperator -> MaterialTheme.colorScheme.primary
-        isSpecialFunction || isScientificFunction -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f) // Subtle gray like Figma
-        else -> MaterialTheme.colorScheme.secondary
+fun CalculatorScreenPreviewLight() {
+    ICalcTheme(darkTheme = false) {
+        val state = CalculatorState(number1 = "12,345", mode = CalculatorMode.Scientific, number2 = "*2", operation = CalculatorOperation.Multiply)
+        CalculatorScreen(state = state, onAction = {})
     }
-
-    val textColor = MaterialTheme.colorScheme.onPrimary
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(1f),
-        shape = RoundedCornerShape(24.dp), // Pill shape
-        color = buttonColor,
-        onClick = onClick,
-        content = {
-            Box(contentAlignment = Alignment.Center) {
-                if (symbol == "DEL") {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_backspace),
-                        contentDescription = "Delete",
-                        tint = textColor
-                    )
-                } else {
-                    Text(text = symbol, fontSize = 28.sp, color = textColor)
-                }
-            }
-        }
-    )
 }
-
-
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "Dark Mode Preview")
 @Composable
-fun CalculatorScreenPreview() {
-    ICalcTheme {
-        val state = CalculatorState(number1 = "12,345", mode = CalculatorMode.Scientific)
+fun CalculatorScreenPreviewDark() {
+    ICalcTheme(darkTheme = true) {
+        val state = CalculatorState(number1 = "12,345", mode = CalculatorMode.Scientific, number2 = "*2", operation = CalculatorOperation.Multiply)
         CalculatorScreen(state = state, onAction = {})
     }
 }
