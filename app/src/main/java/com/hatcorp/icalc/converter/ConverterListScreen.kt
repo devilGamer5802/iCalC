@@ -11,11 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.hatcorp.icalc.AppRoutes
 
 
 // We will add more to this list in future chapters
 val converterCategories = listOf(
-    "Length", "Mass", "Data", "Speed", "Temperature"
+    "Length", "Mass", "Currency", "Data", "Speed", "Temperature"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +42,11 @@ fun ConverterListScreen(navController: NavController) { // Added navController p
         ) {
             items(converterCategories) { category ->
                 ConverterCategoryItem(category = category) {
-                    navController.navigate("unit_converter/$category") // Now uses the passed navController
+                    if (category == "Currency") {
+                        navController.navigate(AppRoutes.CURRENCY_CONVERTER)
+                    } else {
+                        navController.navigate("unit_converter/$category")
+                    }
                 }
             }
         }
