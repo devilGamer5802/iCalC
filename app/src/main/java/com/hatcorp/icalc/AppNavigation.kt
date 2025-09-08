@@ -12,6 +12,8 @@ import com.hatcorp.icalc.converter.UnitConverterViewModel // New ViewModel
 // import com.hatcorp.icalc.calculator.CalculatorScreen // Commented out potentially incorrect import
 // CalculatorScreen is likely in com.hatcorp.icalc package (MainActivity.kt)
 import com.hatcorp.icalc.calculator.CalculatorViewModel
+import com.hatcorp.icalc.currency.CurrencyConverterScreen
+
 // Removed duplicate import for com.hatcorp.icalc.converter.ConverterListScreen as it's already imported above
 
 // Defines the routes as constants for type safety
@@ -19,6 +21,7 @@ object AppRoutes {
     const val CALCULATOR = "calculator"
     const val CONVERTER_LIST = "converter_list"
     const val UNIT_CONVERTER = "unit_converter/{category}"
+    const val CURRENCY_CONVERTER = "currency_converter" // New route
 }
 
 @Composable
@@ -46,6 +49,9 @@ fun AppNavHost(
                 // factory = // We might need a factory later, but SavedStateHandle should work by default // Removed incomplete factory
             )
             UnitConverterScreen(viewModel = viewModel)
+        }
+        composable(AppRoutes.CURRENCY_CONVERTER) {
+            CurrencyConverterScreen()
         }
     }
 }
