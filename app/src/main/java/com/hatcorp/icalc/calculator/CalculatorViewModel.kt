@@ -27,6 +27,8 @@ class CalculatorViewModel : ViewModel() {
                     )
                 }
             }
+            is CalculatorAction.ShowHistory -> _state.update { it.copy(isHistoryVisible = true) }
+            is CalculatorAction.HideHistory -> _state.update { it.copy(isHistoryVisible = false) }
         }
     }
 
@@ -91,6 +93,7 @@ class CalculatorViewModel : ViewModel() {
     private fun performCalculation() {
         val number1 = _state.value.number1.toDoubleOrNull()
         val number2 = _state.value.number2.toDoubleOrNull()
+        val operation = _state.value.operation
 
         if(number1 != null && number2 != null && _state.value.operation == CalculatorOperation.Percent){
             val result = number1 * (number2 / 100.0)
@@ -127,7 +130,19 @@ class CalculatorViewModel : ViewModel() {
                 operation = null
             )
         }
+
+        val equation = "${_state.value.number1} ${operation?.symbol} ${_state.value.number2} = $resultString"
+
+        _state.update {
+            it.copy(
+                number1 = resultString,
+                number2 = "",
+                operation = null,
+                history = listOf(equation) + it.history // Prepend the new equation to the history list
+            )
+        }
     }
+
 
     private fun performDeletion() {
         _state.update {
