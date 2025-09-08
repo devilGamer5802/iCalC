@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+
 
 // We will add more to this list in future chapters
 val converterCategories = listOf(
@@ -18,7 +20,7 @@ val converterCategories = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConverterListScreen() {
+fun ConverterListScreen(navController: NavController) { // Added navController parameter
     Scaffold(
         topBar = {
             TopAppBar(
@@ -39,7 +41,7 @@ fun ConverterListScreen() {
         ) {
             items(converterCategories) { category ->
                 ConverterCategoryItem(category = category) {
-                    // TODO: Navigate to the specific converter
+                    navController.navigate("unit_converter/$category") // Now uses the passed navController
                 }
             }
         }
