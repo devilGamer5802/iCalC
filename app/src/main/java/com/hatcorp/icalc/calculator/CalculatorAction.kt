@@ -22,4 +22,8 @@ sealed interface CalculatorAction {
     data object ToggleMode : CalculatorAction
 
     data class Scientific(val operation: ScientificOperation) : CalculatorAction
+
+    data object ShowHistory : CalculatorAction
+
+    data object HideHistory : CalculatorAction
 }

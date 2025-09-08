@@ -25,6 +25,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.outlined.Widgets
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController // Added import
@@ -47,12 +54,37 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculatorScreen(
     state: CalculatorState,
     onAction: (CalculatorAction) -> Unit,
     navController: NavHostController
 ) {
+    val sheetState = rememberModalBottomSheetState()
+
+    // Show the Bottom Sheet when isHistoryVisible is true
+    if (state.isHistoryVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { onAction(CalculatorAction.HideHistory) },
+            sheetState = sheetState
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Calculation History", style = MaterialTheme.typography.headlineSmall)
+                Spacer(modifier = Modifier.height(16.dp))
+                if (state.history.isEmpty()) {
+                    Text("No history yet.")
+                } else {
+                    LazyColumn {
+                        items(state.history) { equation ->
+                            Text(equation, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(vertical = 4.dp))
+                            Divider()
+                        }
+                    }
+                }
+            }
+        }
+    }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -71,16 +103,29 @@ fun CalculatorScreen(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                IconButton(
-                    onClick = { navController.navigate(AppRoutes.CONVERTER_LIST) }, // THIS IS THE NAVIGATION ACTION
-                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.History,
-                        contentDescription = "Change Mode",
-                        tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    IconButton(onClick = { onAction(CalculatorAction.ShowHistory) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.History,
+                            contentDescription = "History",
+                            tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    // THE NEW NAVIGATION BUTTON
+                    IconButton(onClick = { navController.navigate(AppRoutes.CONVERTER_LIST) }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Widgets, // A much better icon for "other tools"
+                            contentDescription = "Change Mode",
+                            tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
 
                 Column(
