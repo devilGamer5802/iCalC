@@ -3,12 +3,13 @@ package com.hatcorp.icalc
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,6 +18,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hatcorp.icalc.calculator.CalculatorAction
+import com.hatcorp.icalc.calculator.CalculatorOperation
+import com.hatcorp.icalc.calculator.CalculatorState
+import com.hatcorp.icalc.calculator.CalculatorViewModel
 import com.hatcorp.icalc.ui.theme.DarkGray
 import com.hatcorp.icalc.ui.theme.ICalCTheme
 import com.hatcorp.icalc.ui.theme.Orange
@@ -26,14 +32,22 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ICalCTheme {
-                CalculatorScreen()
+                val viewModel = viewModel<CalculatorViewModel>()
+                val state by viewModel.state.collectAsState()
+                CalculatorScreen(
+                    state = state,
+                    onAction = viewModel::onAction
+                )
             }
         }
     }
 }
 
 @Composable
-fun CalculatorScreen() {
+fun CalculatorScreen(
+    state: CalculatorState,
+    onAction: (CalculatorAction) -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = DarkGray
@@ -45,9 +59,9 @@ fun CalculatorScreen() {
                     .align(Alignment.BottomCenter),
                 verticalArrangement = Arrangement.spacedBy(1.dp)
             ) {
-                // Display Area
+                val displayText = state.number1 + (state.operation?.symbol ?: "") + state.number2
                 Text(
-                    text = "0",
+                    text = displayText.ifEmpty { "0" },
                     fontSize = 80.sp,
                     color = Color.White,
                     textAlign = TextAlign.End,
@@ -58,7 +72,6 @@ fun CalculatorScreen() {
                     fontWeight = FontWeight.Light
                 )
 
-                // Buttons
                 val buttonRows = listOf(
                     listOf("AC", "±", "%", "÷"),
                     listOf("7", "8", "9", "×"),
@@ -79,7 +92,20 @@ fun CalculatorScreen() {
                                 symbol = button,
                                 modifier = Modifier
                                     .weight(if (button == "0") 2f else 1f)
-                                    .aspectRatio(if (button == "0") 2f else 1f)
+                                    .aspectRatio(if (button == "0") 2f else 1f),
+                                onClick = {
+                                    when (button) {
+                                        "AC" -> onAction(CalculatorAction.Clear)
+                                        "±", "%" -> { /* TODO */ }
+                                        "÷" -> onAction(CalculatorAction.Operation(CalculatorOperation.Divide))
+                                        "×" -> onAction(CalculatorAction.Operation(CalculatorOperation.Multiply))
+                                        "-" -> onAction(CalculatorAction.Operation(CalculatorOperation.Subtract))
+                                        "+" -> onAction(CalculatorAction.Operation(CalculatorOperation.Add))
+                                        "." -> onAction(CalculatorAction.Decimal)
+                                        "=" -> onAction(CalculatorAction.Calculate)
+                                        else -> onAction(CalculatorAction.Number(button.toInt()))
+                                    }
+                                }
                             )
                         }
                     }
@@ -123,6 +149,9 @@ fun CalculatorButton(
 @Composable
 fun CalculatorScreenPreview() {
     ICalCTheme {
-        CalculatorScreen()
+        CalculatorScreen(
+            state = CalculatorState(), // Added default state
+            onAction = {} // Added empty lambda for onAction
+        )
     }
 }
