@@ -26,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController // Added import
 import com.hatcorp.icalc.calculator.*
 import com.hatcorp.icalc.ui.theme.ICalcTheme
 
@@ -35,10 +37,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             ICalcTheme {
                 val viewModel = viewModel<CalculatorViewModel>()
-                val state by viewModel.state.collectAsState()
-                CalculatorScreen(
-                    state = state,
-                    onAction = viewModel::onAction
+                val navController = rememberNavController() // Defined navController
+                AppNavHost(
+                    navController = navController, // Used defined navController
+                    calculatorViewModel = viewModel // Used correct viewModel variable
                 )
             }
         }
@@ -48,7 +50,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CalculatorScreen(
     state: CalculatorState,
-    onAction: (CalculatorAction) -> Unit
+    onAction: (CalculatorAction) -> Unit,
+    navController: NavHostController
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -69,10 +72,8 @@ fun CalculatorScreen(
                     .weight(1f)
             ) {
                 IconButton(
-                    onClick = { /* TODO: Navigate */ },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
+                    onClick = { navController.navigate(AppRoutes.CONVERTER_LIST) }, // THIS IS THE NAVIGATION ACTION
+                    modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.History,
@@ -241,7 +242,7 @@ private fun handleButtonClick(symbol: String, onAction: (CalculatorAction) -> Un
 fun CalculatorScreenPreviewLight() {
     ICalcTheme(darkTheme = false) {
         val state = CalculatorState(number1 = "12,345", mode = CalculatorMode.Scientific, number2 = "*2", operation = CalculatorOperation.Multiply)
-        CalculatorScreen(state = state, onAction = {})
+        CalculatorScreen(state = state, onAction = {}, navController = rememberNavController()) // Added navController
     }
 }
 @Preview(showBackground = true, name = "Dark Mode Preview")
@@ -249,6 +250,6 @@ fun CalculatorScreenPreviewLight() {
 fun CalculatorScreenPreviewDark() {
     ICalcTheme(darkTheme = true) {
         val state = CalculatorState(number1 = "12,345", mode = CalculatorMode.Scientific, number2 = "*2", operation = CalculatorOperation.Multiply)
-        CalculatorScreen(state = state, onAction = {})
+        CalculatorScreen(state = state, onAction = {}, navController = rememberNavController()) // Added navController
     }
 }
