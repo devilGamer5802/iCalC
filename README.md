@@ -108,8 +108,6 @@ git push -u origin chapter/01.5-readme
 - Inspired by modern math tools and OS-level handwriting experiences
 - Built with Android modern app architecture principles
 
-If helpful, a ready-to-commit patch/diff for README.md and a short PR description can be provided next, along with a CI stub for lint/assemble checks to keep PRs green.
-
 [1](https://ieeexplore.ieee.org/document/8667998/)
 [2](https://www.semanticscholar.org/paper/c51a6634002008070d1ef2d50ebc438a78901342)
 [3](https://ieeexplore.ieee.org/document/9978176/)
