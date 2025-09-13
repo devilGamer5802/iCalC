@@ -15,7 +15,9 @@ import com.hatcorp.icalc.calculator.CalculatorViewModel
 import com.hatcorp.icalc.currency.CurrencyConverterScreen
 //import com.hatcorp.icalc.finance.InvestmentCalculatorScreen
 import com.hatcorp.icalc.finance.LoanCalculatorScreen
-
+import com.hatcorp.icalc.finance.BmiCalculatorScreen
+//import com.hatcorp.icalc.finance.DateCalculatorScreen
+import com.hatcorp.icalc.finance.GstCalculatorScreen
 // Removed duplicate import for com.hatcorp.icalc.converter.ConverterListScreen as it's already imported above
 
 // Defines the routes as constants for type safety
@@ -26,6 +28,9 @@ object AppRoutes {
     const val CURRENCY_CONVERTER = "currency_converter" // New route
     const val LOAN_CALCULATOR = "loan_calculator"
     const val INVESTMENT_CALCULATOR = "investment_calculator"
+    const val BMI_CALCULATOR = "bmi_calculator"
+    const val GST_CALCULATOR = "gst_calculator"
+    const val DATE_CALCULATOR = "date_calculator"
 }
 
 @Composable
@@ -63,5 +68,8 @@ fun AppNavHost(
         composable(AppRoutes.INVESTMENT_CALCULATOR) {
             //InvestmentCalculatorScreen()
         }
+        composable(AppRoutes.BMI_CALCULATOR) { BmiCalculatorScreen() }
+        composable(AppRoutes.GST_CALCULATOR) { GstCalculatorScreen() }
+        //composable(AppRoutes.DATE_CALCULATOR) { DateCalculatorScreen() }
     }
 }
