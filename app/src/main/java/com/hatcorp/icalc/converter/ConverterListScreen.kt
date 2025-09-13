@@ -49,13 +49,7 @@ fun ConverterListScreen(navController: NavController) { // Added navController p
                         "BMI" -> navController.navigate(AppRoutes.BMI_CALCULATOR)
                         "GST" -> navController.navigate(AppRoutes.GST_CALCULATOR)
                         "Date" -> navController.navigate(AppRoutes.DATE_CALCULATOR)
-                        else -> {
-                            if(listOf("Data", "Speed", "Temperature").contains(category)) {
-                                // Placeholder for future chapters
-                            } else {
-                                navController.navigate("unit_converter/$category")
-                            }
-                        }
+                        else -> navController.navigate("unit_converter/$category")
                     }
                 }
             }

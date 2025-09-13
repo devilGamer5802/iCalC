@@ -52,6 +52,29 @@ class UnitConverterViewModel(
         val fromUnit = _state.value.fromUnit
         val toUnit = _state.value.toUnit
 
+        if (_state.value.category is ConversionCategory.Temperature) {
+            val result = when (fromUnit.name) {
+                "Celsius" -> when (toUnit.name) {
+                    "Fahrenheit" -> (fromValueDouble * 9/5) + 32
+                    "Kelvin" -> fromValueDouble + 273.15
+                    else -> fromValueDouble
+                }
+                "Fahrenheit" -> when (toUnit.name) {
+                    "Celsius" -> (fromValueDouble - 32) * 5/9
+                    "Kelvin" -> (fromValueDouble - 32) * 5/9 + 273.15
+                    else -> fromValueDouble
+                }
+                "Kelvin" -> when (toUnit.name) {
+                    "Celsius" -> fromValueDouble - 273.15
+                    "Fahrenheit" -> (fromValueDouble - 273.15) * 9/5 + 32
+                    else -> fromValueDouble
+                }
+                else -> 0.0
+            }
+            _state.update { it.copy(toValue = result.toString()) }
+            return
+        }
+
         val valueInBase = fromValueDouble * fromUnit.toBaseRate
         val result = valueInBase / toUnit.toBaseRate
 
