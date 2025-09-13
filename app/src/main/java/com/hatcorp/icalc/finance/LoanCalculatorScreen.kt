@@ -12,6 +12,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.NumberFormat
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,37 +30,21 @@ fun LoanCalculatorScreen() {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Loan EMI Calculator") }) }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Sliders for input
-            SliderInput(
+        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
+            FinancialInput(
                 label = "Principal Amount",
                 value = state.principalAmount,
-                onValueChange = { viewModel.onAction(LoanAction.PrincipalChanged(it)) },
-                range = 1000f..1000000f,
-                steps = 1000,
-                displayValue = currencyFormat.format(state.principalAmount)
+                onValueChange = { viewModel.onAction(LoanAction.PrincipalChanged(it)) }
             )
-            SliderInput(
+            FinancialInput(
                 label = "Interest Rate (%)",
                 value = state.interestRate,
-                onValueChange = { viewModel.onAction(LoanAction.RateChanged(it)) },
-                range = 1f..20f,
-                steps = 190,
-                displayValue = "%.2f %%".format(state.interestRate)
+                onValueChange = { viewModel.onAction(LoanAction.RateChanged(it)) }
             )
-            SliderInput(
+            FinancialInput(
                 label = "Loan Term (Years)",
-                value = state.termInYears.toFloat(),
-                onValueChange = { viewModel.onAction(LoanAction.TermChanged(it.toInt())) },
-                range = 1f..30f,
-                steps = 29,
-                displayValue = "${state.termInYears} Years"
+                value = state.termInYears,
+                onValueChange = { viewModel.onAction(LoanAction.TermChanged(it)) }
             )
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -79,6 +65,18 @@ fun LoanCalculatorScreen() {
     }
 }
 
+
+@Composable
+fun FinancialInput(label: String, value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
+}
 @Composable
 fun SliderInput(
     label: String,
