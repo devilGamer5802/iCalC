@@ -7,20 +7,19 @@ import kotlinx.coroutines.flow.update
 import kotlin.math.pow
 
 data class LoanState(
-    val principalAmount: Float = 10000f,
-    val interestRate: Float = 7.5f,
-    val termInYears: Int = 5,
+    val principalAmount: String = "100000",
+    val interestRate: String = "7.5",
+    val termInYears: String = "5",
     val monthlyPayment: Double = 0.0,
     val totalInterest: Double = 0.0,
     val totalPayment: Double = 0.0
 )
 
 sealed interface LoanAction {
-    data class PrincipalChanged(val amount: Float) : LoanAction
-    data class RateChanged(val rate: Float) : LoanAction
-    data class TermChanged(val term: Int) : LoanAction
+    data class PrincipalChanged(val amount: String) : LoanAction
+    data class RateChanged(val rate: String) : LoanAction
+    data class TermChanged(val term: String) : LoanAction
 }
-
 class LoanViewModel : ViewModel() {
     private val _state = MutableStateFlow(LoanState())
     val state = _state.asStateFlow()
@@ -39,9 +38,12 @@ class LoanViewModel : ViewModel() {
     }
 
     private fun calculate() {
-        val p = _state.value.principalAmount.toDouble()
-        val r = (_state.value.interestRate / 100) / 12 // Monthly interest rate
-        val n = _state.value.termInYears * 12 // Total number of payments
+        val p = _state.value.principalAmount.toDoubleOrNull() ?: 0.0
+        val ratePercent = _state.value.interestRate.toDoubleOrNull() ?: 0.0
+        val nYears = _state.value.termInYears.toIntOrNull() ?: 0
+
+        val r = (ratePercent / 100) / 12 // Monthly interest rate
+        val n = nYears * 12 // Total number of payments
 
         if (r > 0) {
             val emi = p * r * (1 + r).pow(n) / ((1 + r).pow(n) - 1)
