@@ -1,125 +1,122 @@
 package com.hatcorp.icalc.whiteboard
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.outlined.Clear
-import androidx.compose.material.icons.outlined.Send
+import androidx.compose.material.icons.automirrored.outlined.Send // Updated import
+import androidx.compose.material.icons.automirrored.outlined.Undo // Updated import
+import androidx.compose.material.icons.outlined.ClearAll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+// import androidx.compose.ui.graphics.drawscope.DrawScope // Unused import removed
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
+// import androidx.compose.ui.unit.dp // Unused import removed
+// import androidx.lifecycle.ViewModel // Unused import removed
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.core.graphics.createBitmap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhiteboardScreen() {
     val viewModel = viewModel<WhiteboardViewModel>()
-    // We don't need to observe the whole state here, as we are handling paths locally for performance
+    val state by viewModel.state.collectAsState()
 
-    // This path is the one currently being drawn.
-    var currentPath by remember { mutableStateOf(Path()) }
-    // This stores the last position of the pointer for calculating curves.
+    val primaryColor = MaterialTheme.colorScheme.primary // Resolve color in Composable scope
+
+    // Local state for the path currently being drawn by the user in real-time.
+    var currentPath by remember { mutableStateOf<Path?>(Path()) }
+    // Local state for the last pointer position, used for Bezier curve smoothing.
     var lastPosition by remember { mutableStateOf<Offset?>(null) }
-    // This bitmap is our "background" layer where finished paths are saved.
-    var committedBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    var canvasSize by remember { mutableStateOf(IntSize.Zero) }
 
-    val pathColor = MaterialTheme.colorScheme.primary
-    val pathStroke = Stroke(width = 8f, cap = StrokeCap.Round, join = StrokeJoin.Round)
-
-    // This will be used to draw onto our bitmap.
-    val canvas = remember(committedBitmap) {
-        committedBitmap?.let { Canvas(it) }
+    val committedBitmap by remember(state.paths, state.canvasSize, primaryColor) { // Added primaryColor to remember key if it affects bitmap drawing logic
+        mutableStateOf(
+            if (state.paths.isNotEmpty() && state.canvasSize.width > 0 && state.canvasSize.height > 0) {
+                drawPathsToBitmap(state.paths, state.canvasSize, primaryColor) // Use resolved color
+            } else {
+                null
+            }
+        )
     }
 
     Scaffold(
         bottomBar = {
             BottomAppBar {
-                IconButton(onClick = {
-                    // Clear both the state and the local bitmap
-                    viewModel.clearCanvas()
-                    committedBitmap = createBitmap(canvasSize.width, canvasSize.height).asImageBitmap()
-                }) {
-                    Icon(Icons.Outlined.Clear, contentDescription = "Clear Canvas")
+                IconButton(onClick = { viewModel.undoLastPath() }) {
+                    Icon(Icons.AutoMirrored.Outlined.Undo, contentDescription = "Undo") // Updated icon
+                }
+                IconButton(onClick = { viewModel.clearCanvas() }) {
+                    Icon(Icons.Outlined.ClearAll, contentDescription = "Clear Canvas")
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 FloatingActionButton(onClick = { /* TODO: Send to Gemini */ }) {
-                    Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Solve")
+                    Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "Solve") // Updated icon
                 }
             }
         }
     ) { padding ->
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .onSizeChanged { size ->
-                    // Initialize our bitmap canvas when the main Canvas's size is known.
-                    if (canvasSize != size) {
-                        canvasSize = size
-                        committedBitmap = createBitmap(size.width, size.height).asImageBitmap()
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .onSizeChanged { size ->
+                        viewModel.setCanvasSize(size)
                     }
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            // Start a new path at the exact touch point
-                            currentPath = Path().apply { moveTo(offset.x, offset.y) }
-                            lastPosition = offset
-                        },
-                        onDrag = { change, _ ->
-                            change.consume()
-                            val currentPosition = change.position
-                            lastPosition?.let {
-                                // THE SMOOTHING LOGIC: Use a quadratic Bezier curve
-                                // from the last point towards the new point.
-                                currentPath.quadraticTo(
-                                    it.x, it.y,
-                                    (it.x + currentPosition.x) / 2,
-                                    (it.y + currentPosition.y) / 2
-                                )
+                    .graphicsLayer(alpha = 0.99f)
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDragStart = { offset ->
+                                currentPath = Path().apply { moveTo(offset.x, offset.y) }
+                                lastPosition = offset
+                            },
+                            onDrag = { change, _ ->
+                                val currentPosition = change.position
+                                lastPosition?.let {
+                                    currentPath?.quadraticTo( // Updated to quadraticTo
+                                        it.x, it.y,
+                                        (it.x + currentPosition.x) / 2,
+                                        (it.y + currentPosition.y) / 2
+                                    )
+                                }
+                                lastPosition = currentPosition
+                                change.consume()
+                            },
+                            onDragEnd = {
+                                currentPath?.let { viewModel.addPath(it) }
+                                currentPath = Path()
+                                lastPosition = null
                             }
-                            lastPosition = currentPosition
-                        },
-                        onDragEnd = {
-                            // Drag has ended. Draw the "current" path onto our permanent bitmap.
-                            canvas?.drawPath(currentPath, Paint().apply {
-                                this.color = pathColor
-                                this.style = PaintingStyle.Stroke
-                                this.strokeWidth = 8f
-                                this.strokeCap = StrokeCap.Round
-                                this.strokeJoin = StrokeJoin.Round
-                            })
-                            // Reset the live path for the next drawing.
-                            currentPath = Path()
-                            lastPosition = null
-                        }
-                    )
+                        )
+                    }
+            ) {
+                committedBitmap?.let {
+                    drawImage(it)
                 }
-        ) {
-            // THE PERFORMANCE OPTIMIZATION:
-            // 1. Draw the bitmap containing all previous paths. This is a very fast operation.
-            committedBitmap?.let {
-                drawImage(it)
+                currentPath?.let {
+                    drawPath(it, color = primaryColor, style = Stroke(8f, cap = StrokeCap.Round, join = StrokeJoin.Round)) // Use resolved color
+                }
             }
-            // 2. Draw only the path that is currently being drawn on top.
-            // This ensures real-time feedback without redrawing everything.
-            drawPath(
-                path = currentPath,
-                color = pathColor,
-                style = pathStroke
-            )
         }
     }
+}
+
+private fun drawPathsToBitmap(paths: List<Path>, size: IntSize, color: Color): ImageBitmap {
+    val bitmap = ImageBitmap(size.width, size.height, ImageBitmapConfig.Argb8888)
+    val canvas = Canvas(bitmap)
+    val paint = Paint().apply {
+        this.color = color // Already accepts Color parameter
+        this.style = PaintingStyle.Stroke
+        this.strokeWidth = 8f
+        this.strokeCap = StrokeCap.Round
+        this.strokeJoin = StrokeJoin.Round
+    }
+    paths.forEach { path ->
+        canvas.drawPath(path, paint)
+    }
+    return bitmap
 }
