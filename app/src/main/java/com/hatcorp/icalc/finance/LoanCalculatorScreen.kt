@@ -11,6 +11,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.navigation.NavController
 import java.text.NumberFormat
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
@@ -18,17 +21,30 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoanCalculatorScreen() {
+fun LoanCalculatorScreen(navController: NavController) { // Added navController parameter
     val viewModel = viewModel<LoanViewModel>()
     val state by viewModel.state.collectAsState()
 
-    val currencyFormat = NumberFormat.getCurrencyInstance(Locale("en", "IN")).apply {
+    // Changed to Locale.forLanguageTag for modern Android
+    val currencyFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")).apply {
         maximumFractionDigits = 0
     }
 
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Loan EMI Calculator") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Loan EMI Calculator") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                }
+            )
+        }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             FinancialInput(
@@ -47,7 +63,7 @@ fun LoanCalculatorScreen() {
                 onValueChange = { viewModel.onAction(LoanAction.TermChanged(it)) }
             )
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp)) // Changed to HorizontalDivider
 
             // Display Results
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {

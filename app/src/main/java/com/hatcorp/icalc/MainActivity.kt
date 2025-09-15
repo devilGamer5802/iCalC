@@ -37,6 +37,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController // Added import
 import com.hatcorp.icalc.calculator.*
 import com.hatcorp.icalc.ui.theme.ICalcTheme
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +112,14 @@ fun CalculatorScreen(
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    IconButton(onClick = { onAction(CalculatorAction.ToggleMode) }) {
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = "Switch Mode",
+                            tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                     IconButton(onClick = { onAction(CalculatorAction.ShowHistory) }) {
                         Icon(
                             imageVector = Icons.Outlined.History,
@@ -166,20 +177,34 @@ fun CalculatorScreen(
             ) {
                 AnimatedVisibility(visible = state.mode == CalculatorMode.Scientific) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        val scientificRow1 = listOf("(", ")", "sin", "cos", "tan")
-                        val scientificRow2 = listOf("log", "ln", "√", "x²", "π")
+                        val sinText = if (state.isShifted) "sin⁻¹" else "sin"
+                        val cosText = if (state.isShifted) "cos⁻¹" else "cos"
+                        val tanText = if (state.isShifted) "tan⁻¹" else "tan"
+                        val lnText = if (state.isShifted) "eˣ" else "ln"
+                        val logText = if (state.isShifted) "10ˣ" else "log"
+                        val sqrtText = if (state.isShifted) "∛" else "√"
+                        val squareText = if (state.isShifted) "x³" else "x²"
+                        val piText = if (state.isShifted) "e" else "π"
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            scientificRow1.forEach { button ->
-                                CalculatorButton(symbol = button, modifier = Modifier.weight(1f), onClick = { handleButtonClick(button, onAction) })
-                            }
+                            // The SHIFT button itself
+                            CalculatorButton(symbol = "2nd", modifier = Modifier.weight(1f), isShiftActive = state.isShifted, onClick = { onAction(CalculatorAction.Shift) })
+                            CalculatorButton(symbol = sqrtText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(sqrtText, onAction) })
+                            CalculatorButton(symbol = squareText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(squareText, onAction) })
+                            CalculatorButton(symbol = piText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(piText, onAction) })
+                            CalculatorButton(symbol = "x!", modifier = Modifier.weight(1f), onClick = { handleButtonClick("x!", onAction) })
                         }
+
+                        // Other scientific rows
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            scientificRow2.forEach { button ->
-                                CalculatorButton(symbol = button, modifier = Modifier.weight(1f), onClick = { handleButtonClick(button, onAction) })
-                            }
+                            CalculatorButton(symbol = sinText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(sinText, onAction) })
+                            CalculatorButton(symbol = cosText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(cosText, onAction) })
+                            CalculatorButton(symbol = tanText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(tanText, onAction) })
+                            CalculatorButton(symbol = lnText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(lnText, onAction) })
+                            CalculatorButton(symbol = logText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(logText, onAction) })
                         }
                     }
                 }
+            }
 
                 val buttonRows = listOf(
                     listOf("AC", "DEL", "%", "÷"),
@@ -207,14 +232,14 @@ fun CalculatorScreen(
             }
         }
     }
-}
 
 @Composable
 fun CalculatorButton(
     symbol: String,
     modifier: Modifier = Modifier,
     aspectRatio: Float = 1f, // Accept aspect ratio as a parameter
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    isShiftActive: Boolean = false,
 ) {
     val isOperator = "÷×-+=".contains(symbol)
     val isSpecialFunction = "ACDEL%".contains(symbol)
@@ -226,6 +251,7 @@ fun CalculatorButton(
     }
 
     val contentColor = when {
+        isShiftActive -> MaterialTheme.colorScheme.tertiary
         isOperator -> MaterialTheme.colorScheme.onPrimary
         isSpecialFunction -> MaterialTheme.colorScheme.onBackground
         else -> MaterialTheme.colorScheme.onSecondary
