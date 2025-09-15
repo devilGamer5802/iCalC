@@ -30,6 +30,9 @@ class CalculatorViewModel : ViewModel() {
             is CalculatorAction.Shift -> _state.update { it.copy(isShifted = !it.isShifted) }
             is CalculatorAction.ShowHistory -> _state.update { it.copy(isHistoryVisible = true) }
             is CalculatorAction.HideHistory -> _state.update { it.copy(isHistoryVisible = false) }
+            is CalculatorAction.ToggleAngleUnit -> _state.update {
+                it.copy(angleUnit = if(it.angleUnit == AngleUnit.DEG) AngleUnit.RAD else AngleUnit.DEG)
+            }
 
         }
     }
@@ -81,12 +84,31 @@ class CalculatorViewModel : ViewModel() {
         val targetNumber = _state.value.number1.toDoubleOrNull() ?: return
 
         val result = when (operation) {
-            ScientificOperation.Sin -> sin(Math.toRadians(targetNumber))
-            ScientificOperation.Cos -> cos(Math.toRadians(targetNumber))
-            ScientificOperation.Tan -> tan(Math.toRadians(targetNumber))
-            ScientificOperation.Asin -> Math.toDegrees(asin(targetNumber))
-            ScientificOperation.Acos -> Math.toDegrees(acos(targetNumber))
-            ScientificOperation.Atan -> Math.toDegrees(atan(targetNumber))
+            ScientificOperation.Sin ->  {
+                val angle = if(_state.value.angleUnit == AngleUnit.DEG) Math.toRadians(targetNumber) else targetNumber
+                sin(angle)
+            }
+            ScientificOperation.Cos ->  {
+                val angle = if(_state.value.angleUnit == AngleUnit.DEG) Math.toRadians(targetNumber) else targetNumber
+                cos(angle)
+            }
+            ScientificOperation.Tan ->  {
+                val angle = if(_state.value.angleUnit == AngleUnit.DEG) Math.toRadians(targetNumber) else targetNumber
+                tan(angle)
+            }
+            ScientificOperation.Asin ->  {
+                val angle = if(_state.value.angleUnit == AngleUnit.DEG) Math.toRadians(targetNumber) else targetNumber
+                asin(angle)
+            }
+            ScientificOperation.Acos ->  {
+                val angle = if(_state.value.angleUnit == AngleUnit.DEG) Math.toRadians(targetNumber) else targetNumber
+                acos(angle)
+            }
+            ScientificOperation.Atan ->  {
+                val angle = if(_state.value.angleUnit == AngleUnit.DEG) Math.toRadians(targetNumber) else targetNumber
+                atan(angle)
+            }
+            ScientificOperation.Reciprocal -> if (targetNumber != 0.0) 1.0 / targetNumber else Double.NaN
             ScientificOperation.Log -> log10(targetNumber)
             ScientificOperation.Ln -> ln(targetNumber)
             ScientificOperation.Square -> targetNumber.pow(2)
@@ -138,6 +160,7 @@ class CalculatorViewModel : ViewModel() {
             is CalculatorOperation.Multiply -> number1 * number2
             is CalculatorOperation.Divide -> if(number2 != 0.0) number1 / number2 else Double.NaN
             is CalculatorOperation.Percent -> return // Already handled above
+            is CalculatorOperation.Power -> number1.pow(number2)
             null -> return
         }
 

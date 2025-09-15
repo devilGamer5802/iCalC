@@ -3,6 +3,9 @@ package com.hatcorp.icalc.calculator
 enum class CalculatorMode {
     Basic, Scientific
 }
+enum class AngleUnit {
+    DEG, RAD
+}
 data class CalculatorState(
     val number1: String = "",
     val number2: String = "",
@@ -11,5 +14,6 @@ data class CalculatorState(
     val history: List<String> = emptyList(),
     val isHistoryVisible: Boolean = false,
     val mode: CalculatorMode = CalculatorMode.Basic, // Start in Basic mode
-    val isShifted: Boolean = false
+    val isShifted: Boolean = false,
+    val angleUnit: AngleUnit = AngleUnit.DEG
 )

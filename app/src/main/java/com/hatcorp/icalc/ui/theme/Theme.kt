@@ -1,8 +1,8 @@
 package com.hatcorp.icalc.ui.theme
 
 import DarkBackground
-import DarkButtonBlue
 import DarkButtonGray
+import DarkButtonOrange
 import DarkTextPrimary
 import LightBackground
 import LightButtonBlue
@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = DarkButtonBlue,    // Operators
+    primary = DarkButtonOrange,    // Operators
     secondary = DarkButtonGray,  // Numbers
     background = DarkBackground,
     surface = DarkBackground,

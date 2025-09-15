@@ -12,6 +12,7 @@ import com.hatcorp.icalc.converter.UnitConverterViewModel // New ViewModel
 // import com.hatcorp.icalc.calculator.CalculatorScreen // Commented out potentially incorrect import
 // CalculatorScreen is likely in com.hatcorp.icalc package (MainActivity.kt)
 import com.hatcorp.icalc.calculator.CalculatorViewModel
+import com.hatcorp.icalc.converter.UnifiedConverterScreen
 import com.hatcorp.icalc.currency.CurrencyConverterScreen
 //import com.hatcorp.icalc.finance.InvestmentCalculatorScreen
 import com.hatcorp.icalc.finance.LoanCalculatorScreen
@@ -32,6 +33,7 @@ object AppRoutes {
     const val BMI_CALCULATOR = "bmi_calculator"
     const val GST_CALCULATOR = "gst_calculator"
     const val DATE_CALCULATOR = "date_calculator"
+    const val UNIFIED_CONVERTER = "unified_converter/{category}"
 }
 
 @Composable
@@ -44,10 +46,9 @@ fun AppNavHost(
         startDestination = AppRoutes.CALCULATOR
     ) {
         composable(AppRoutes.CALCULATOR) {
-            CalculatorScreen(
-                state = calculatorViewModel.state.collectAsState().value,
-                onAction = calculatorViewModel::onAction,
-                navController = navController // Pass navController
+            MainScreen(
+                navController = navController,
+                calculatorViewModel = calculatorViewModel
             )
         }
         composable(AppRoutes.CONVERTER_LIST) {
@@ -72,5 +73,9 @@ fun AppNavHost(
         composable(AppRoutes.BMI_CALCULATOR) { BmiCalculatorScreen() }
         composable(AppRoutes.GST_CALCULATOR) { GstCalculatorScreen() }
         composable(AppRoutes.DATE_CALCULATOR) { DateCalculatorScreen() }
+        composable(AppRoutes.UNIFIED_CONVERTER) { backStackEntry ->
+            val category = backStackEntry.arguments?.getString("category")
+            UnifiedConverterScreen(navController = navController, categoryName = category)
+        }
     }
 }
