@@ -33,14 +33,14 @@ fun UnitConverterScreen(viewModel: UnitConverterViewModel) {
         ) {
             UnitRow(
                 value = state.fromValue,
-                onValueChange = { viewModel.onAction(ConverterAction.FromValueChanged(it)) },
+                onValueChange = { viewModel.onAction(ConverterAction.KeyPress(it)) },
                 selectedUnit = state.fromUnit,
                 onUnitChange = { viewModel.onAction(ConverterAction.FromUnitChanged(it)) },
                 units = state.category.units,
                 label = "From"
             )
 
-            IconButton(onClick = { viewModel.onAction(ConverterAction.SwapUnits) }) {
+            IconButton(onClick = { viewModel.onAction(ConverterAction.ToggleMenu(ExpandedMenu.FROM)) }) {
                 Icon(Icons.Default.SwapVert, contentDescription = "Swap Units")
             }
 

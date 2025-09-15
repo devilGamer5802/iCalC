@@ -68,14 +68,27 @@ fun CalculatorScreen(
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
     val sheetState = rememberModalBottomSheetState()
+
     if (state.isHistoryVisible) {
         ModalBottomSheet(
             onDismissRequest = { onAction(CalculatorAction.HideHistory) },
             sheetState = sheetState
         ) {
-            // ... (History Bottom Sheet UI from Chapter 9.7) ...
+            Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+                Text("Calculation History", style = MaterialTheme.typography.headlineSmall)
+                Spacer(modifier = Modifier.height(16.dp))
+                if (state.history.isEmpty()) {
+                    Text("No history yet.")
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(state.history) { equation ->
+                            Text(equation, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(vertical = 4.dp))
+                            HorizontalDivider()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -102,68 +115,40 @@ fun PortraitCalculatorLayout(
             .fillMaxSize()
             .padding(bottom = 16.dp, start = 8.dp, end = 8.dp)
     ) {
-        // --- DISPLAY AREA ---
         Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = { onAction(CalculatorAction.ToggleMode) }) {
-                    Icon(
-                        imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = "Switch Mode",
-                        tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Icon(Icons.Default.SwapHoriz, "Switch Mode", tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary, modifier = Modifier.size(32.dp))
                 }
                 Row {
                     IconButton(onClick = { onAction(CalculatorAction.ShowHistory) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.History,
-                            contentDescription = "History",
-                            tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        Icon(Icons.Outlined.History, "History", tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary, modifier = Modifier.size(32.dp))
                     }
                     IconButton(onClick = { navController.navigate(AppRoutes.CONVERTER_LIST) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Widgets,
-                            contentDescription = "Utilities",
-                            tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
-                            modifier = Modifier.size(32.dp)
-                        )
+                        Icon(Icons.Outlined.Widgets, "Utilities", tint = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary, modifier = Modifier.size(32.dp))
                     }
                 }
             }
-
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomEnd)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().align(Alignment.BottomEnd).padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
                     text = state.number1 + (state.operation?.symbol ?: "") + state.number2,
-                    fontSize = 40.sp,
-                    color = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
+                    fontSize = 40.sp, color = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
                     textAlign = TextAlign.End, maxLines = 1
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = state.number1.ifEmpty { "0" },
-                    fontSize = 80.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    text = if (state.number2.isNotBlank()) state.number2 else state.number1.ifEmpty { "0" },
+                    fontSize = 80.sp, color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.End, maxLines = 1, fontWeight = FontWeight.Light
                 )
             }
         }
-
-        // --- BUTTON PAD ---
         ButtonPad(state = state, onAction = onAction)
     }
 }
@@ -171,31 +156,23 @@ fun PortraitCalculatorLayout(
 @Composable
 fun LandscapeCalculatorLayout(state: CalculatorState, onAction: (CalculatorAction) -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Column(
             modifier = Modifier.weight(1f).fillMaxHeight(),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.Bottom
+            horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = state.number1 + (state.operation?.symbol ?: "") + state.number2,
-                fontSize = 24.sp,
-                color = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary,
-                maxLines = 1
+                fontSize = 24.sp, color = if (isSystemInDarkTheme()) DarkTextSecondary else LightTextSecondary, maxLines = 1
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = state.number1.ifEmpty { "0" },
-                fontSize = 48.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Light, maxLines = 1
+                text = state.number2.ifBlank { state.number1.ifEmpty { "0" } },
+                fontSize = 48.sp, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.Light, maxLines = 1
             )
         }
-
         Box(modifier = Modifier.weight(1.5f).fillMaxHeight()) {
             ButtonPad(state = state, onAction = onAction)
         }
@@ -203,93 +180,92 @@ fun LandscapeCalculatorLayout(state: CalculatorState, onAction: (CalculatorActio
 }
 
 // -----------------------------------------------------------------------------
-// --- Reusable UI Components & Logic ---
+// --- Calculator Components & Logic ---
 // -----------------------------------------------------------------------------
 
 @Composable
 fun ButtonPad(state: CalculatorState, onAction: (CalculatorAction) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        AnimatedVisibility(visible = state.mode == CalculatorMode.Scientific) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                val sinText = if (state.isShifted) "sin⁻¹" else "sin"
-                val cosText = if (state.isShifted) "cos⁻¹" else "cos"
-                val tanText = if (state.isShifted) "tan⁻¹" else "tan"
-                val lnText = if (state.isShifted) "eˣ" else "ln"
-                val logText = if (state.isShifted) "10ˣ" else "log"
-                val sqrtText = if (state.isShifted) "∛" else "√"
-                val squareText = if (state.isShifted) "x³" else "x²"
-                val piText = if (state.isShifted) "e" else "π"
+    val buttonSpacing = 10.dp
 
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CalculatorButton(symbol = "2nd", modifier = Modifier.weight(1f), isShiftActive = state.isShifted, onClick = { onAction(CalculatorAction.Shift) })
-                    CalculatorButton(symbol = sqrtText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(sqrtText, onAction) })
-                    CalculatorButton(symbol = squareText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(squareText, onAction) })
-                    CalculatorButton(symbol = piText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(piText, onAction) })
-                    CalculatorButton(symbol = "x!", modifier = Modifier.weight(1f), onClick = { handleButtonClick("x!", onAction) })
+    Column(verticalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+        AnimatedVisibility(visible = state.mode == CalculatorMode.Scientific) {
+            Column(verticalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+                val radText = if (state.angleUnit == AngleUnit.DEG) "deg" else "rad"
+                Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+                    CalculatorButton("2nd", Modifier.weight(1f), isShiftActive = state.isShifted, onClick = { onAction(CalculatorAction.Shift) })
+                    CalculatorButton(radText, Modifier.weight(1f), onClick = { onAction(CalculatorAction.ToggleAngleUnit) })
+                    CalculatorButton("sin", Modifier.weight(1f), onClick = { handleButtonClick("sin", onAction) })
+                    CalculatorButton("cos", Modifier.weight(1f), onClick = { handleButtonClick("cos", onAction) })
+                    CalculatorButton("tan", Modifier.weight(1f), onClick = { handleButtonClick("tan", onAction) })
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CalculatorButton(symbol = sinText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(sinText, onAction) })
-                    CalculatorButton(symbol = cosText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(cosText, onAction) })
-                    CalculatorButton(symbol = tanText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(tanText, onAction) })
-                    CalculatorButton(symbol = lnText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(lnText, onAction) })
-                    CalculatorButton(symbol = logText, modifier = Modifier.weight(1f), onClick = { handleButtonClick(logText, onAction) })
+                Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+                    CalculatorButton("xʸ", Modifier.weight(1f), onClick = { handleButtonClick("xʸ", onAction) })
+                    CalculatorButton("log", Modifier.weight(1f), onClick = { handleButtonClick("log", onAction) })
+                    CalculatorButton("ln", Modifier.weight(1f), onClick = { handleButtonClick("ln", onAction) })
+                    CalculatorButton("(", Modifier.weight(1f), onClick = { /* Not Implemented */ })
+                    CalculatorButton(")", Modifier.weight(1f), onClick = { /* Not Implemented */ })
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+                    CalculatorButton("√", Modifier.weight(1f), onClick = { handleButtonClick("√", onAction) })
+                    CalculatorButton("AC", Modifier.weight(1f), onClick = { handleButtonClick("AC", onAction) })
+                    CalculatorButton("DEL", Modifier.weight(1f), onClick = { handleButtonClick("DEL", onAction) })
+                    CalculatorButton("%", Modifier.weight(1f), onClick = { handleButtonClick("%", onAction) })
+                    CalculatorButton("÷", Modifier.weight(1f), isOperator = true, onClick = { handleButtonClick("÷", onAction) })
                 }
             }
         }
-        val buttonRows = listOf(
-            listOf("AC", "DEL", "%", "÷"),
-            listOf("7", "8", "9", "×"),
-            listOf("4", "5", "6", "-"),
-            listOf("1", "2", "3", "+"),
-            listOf("0", ".", "=")
-        )
-        buttonRows.forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { button ->
-                    val weight = if (button == "0") 2.05f else 1f
-                    val aspectRatio = if (button == "0") 2f else 1f
-                    CalculatorButton(symbol = button, modifier = Modifier.weight(weight), aspectRatio = aspectRatio, onClick = { handleButtonClick(button, onAction) })
-                }
-            }
+        Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("1/x", Modifier.weight(1f), onClick = { handleButtonClick("1/x", onAction) })
+            CalculatorButton("7", Modifier.weight(1f), onClick = { handleButtonClick("7", onAction) })
+            CalculatorButton("8", Modifier.weight(1f), onClick = { handleButtonClick("8", onAction) })
+            CalculatorButton("9", Modifier.weight(1f), onClick = { handleButtonClick("9", onAction) })
+            CalculatorButton("×", Modifier.weight(1f), isOperator = true, onClick = { handleButtonClick("×", onAction) })
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("π", Modifier.weight(1f), onClick = { handleButtonClick("π", onAction) })
+            CalculatorButton("4", Modifier.weight(1f), onClick = { handleButtonClick("4", onAction) })
+            CalculatorButton("5", Modifier.weight(1f), onClick = { handleButtonClick("5", onAction) })
+            CalculatorButton("6", Modifier.weight(1f), onClick = { handleButtonClick("6", onAction) })
+            CalculatorButton("-", Modifier.weight(1f), isOperator = true, onClick = { handleButtonClick("-", onAction) })
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("e", Modifier.weight(1f), onClick = { handleButtonClick("e", onAction) })
+            CalculatorButton("1", Modifier.weight(1f), onClick = { handleButtonClick("1", onAction) })
+            CalculatorButton("2", Modifier.weight(1f), onClick = { handleButtonClick("2", onAction) })
+            CalculatorButton("3", Modifier.weight(1f), onClick = { handleButtonClick("3", onAction) })
+            CalculatorButton("+", Modifier.weight(1f), isOperator = true, onClick = { handleButtonClick("+", onAction) })
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(buttonSpacing)) {
+            CalculatorButton("±", Modifier.weight(1f), onClick = { /* TODO: Implement ToggleSign */ })
+            CalculatorButton("0", modifier = Modifier.weight(1f).weight(2.05f), onClick = { handleButtonClick("0", onAction) })
+            CalculatorButton(".", Modifier.weight(1f), onClick = { handleButtonClick(".", onAction) })
+            CalculatorButton("=", Modifier.weight(1f), isOperator = true, onClick = { handleButtonClick("=", onAction) })
         }
     }
 }
 
 @Composable
-fun CalculatorButton(
-    symbol: String,
-    modifier: Modifier = Modifier,
-    aspectRatio: Float = 1f,
-    isShiftActive: Boolean = false,
-    onClick: () -> Unit = {}
-) {
-    val isOperator = "÷×-+=".contains(symbol)
-    val isSpecialFunction = "ACDEL%".contains(symbol)
-
+fun CalculatorButton(symbol: String, modifier: Modifier, isOperator: Boolean = false, isShiftActive: Boolean = false, onClick: () -> Unit) {
     val buttonColor = when {
         isShiftActive -> MaterialTheme.colorScheme.tertiaryContainer
         isOperator -> MaterialTheme.colorScheme.primary
-        isSpecialFunction -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+        "ACDEL%±".contains(symbol) || symbol.length > 1 -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
         else -> MaterialTheme.colorScheme.secondary
     }
     val contentColor = when {
         isShiftActive -> MaterialTheme.colorScheme.onTertiaryContainer
         isOperator -> MaterialTheme.colorScheme.onPrimary
-        isSpecialFunction -> MaterialTheme.colorScheme.onBackground
-        else -> MaterialTheme.colorScheme.onSecondary
+        else -> MaterialTheme.colorScheme.onSecondaryContainer
     }
-
     Surface(
-        modifier = modifier.aspectRatio(aspectRatio).fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = buttonColor,
-        onClick = onClick
+        modifier = modifier.aspectRatio(if (symbol == "0") 2f else 1f).fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp), color = buttonColor, onClick = onClick
     ) {
         Box(contentAlignment = Alignment.Center) {
             if (symbol == "DEL") {
-                Icon(painter = painterResource(id = R.drawable.ic_backspace), contentDescription = "Delete", tint = contentColor)
+                Icon(painterResource(R.drawable.ic_backspace), "Delete", tint = contentColor)
             } else {
-                Text(text = symbol, fontSize = 28.sp, color = contentColor, fontWeight = FontWeight.Medium)
+                Text(symbol, fontSize = if (symbol.length > 2) 20.sp else 28.sp, color = contentColor, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -297,63 +273,38 @@ fun CalculatorButton(
 
 private fun handleButtonClick(symbol: String, onAction: (CalculatorAction) -> Unit) {
     when (symbol) {
-        // Basic Actions
         "AC" -> onAction(CalculatorAction.Clear)
         "DEL" -> onAction(CalculatorAction.Delete)
-        "%" -> onAction(CalculatorAction.Operation(CalculatorOperation.Percent))
-        "÷" -> onAction(CalculatorAction.Operation(CalculatorOperation.Divide))
-        "×" -> onAction(CalculatorAction.Operation(CalculatorOperation.Multiply))
-        "-" -> onAction(CalculatorAction.Operation(CalculatorOperation.Subtract))
-        "+" -> onAction(CalculatorAction.Operation(CalculatorOperation.Add))
         "." -> onAction(CalculatorAction.Decimal)
         "=" -> onAction(CalculatorAction.Calculate)
-
-        // Scientific Actions - Non-Shifted
+        "+" -> onAction(CalculatorAction.Operation(CalculatorOperation.Add))
+        "-" -> onAction(CalculatorAction.Operation(CalculatorOperation.Subtract))
+        "×" -> onAction(CalculatorAction.Operation(CalculatorOperation.Multiply))
+        "÷" -> onAction(CalculatorAction.Operation(CalculatorOperation.Divide))
+        "%" -> onAction(CalculatorAction.Operation(CalculatorOperation.Percent))
+        "xʸ" -> onAction(CalculatorAction.Operation(CalculatorOperation.Power))
         "sin" -> onAction(CalculatorAction.Scientific(ScientificOperation.Sin))
         "cos" -> onAction(CalculatorAction.Scientific(ScientificOperation.Cos))
         "tan" -> onAction(CalculatorAction.Scientific(ScientificOperation.Tan))
         "ln" -> onAction(CalculatorAction.Scientific(ScientificOperation.Ln))
         "log" -> onAction(CalculatorAction.Scientific(ScientificOperation.Log))
         "√" -> onAction(CalculatorAction.Scientific(ScientificOperation.Sqrt))
-        "x²" -> onAction(CalculatorAction.Scientific(ScientificOperation.Square))
-        "π" -> onAction(CalculatorAction.Scientific(ScientificOperation.Pi))
-        "x!" -> onAction(CalculatorAction.Scientific(ScientificOperation.Factorial))
+        "1/x" -> onAction(CalculatorAction.Scientific(ScientificOperation.Reciprocal))
         "e" -> onAction(CalculatorAction.Scientific(ScientificOperation.E))
-
-        // Scientific Actions - Shifted
-        "sin⁻¹" -> onAction(CalculatorAction.Scientific(ScientificOperation.Asin))
-        "cos⁻¹" -> onAction(CalculatorAction.Scientific(ScientificOperation.Acos))
-        "tan⁻¹" -> onAction(CalculatorAction.Scientific(ScientificOperation.Atan))
-        "eˣ" -> onAction(CalculatorAction.Scientific(ScientificOperation.EPower))
-        "10ˣ" -> onAction(CalculatorAction.Scientific(ScientificOperation.TenPower))
-        "∛" -> onAction(CalculatorAction.Scientific(ScientificOperation.Cbrt))
-        "x³" -> onAction(CalculatorAction.Scientific(ScientificOperation.Cube))
-
-        // Number actions
+        "π" -> onAction(CalculatorAction.Scientific(ScientificOperation.Pi))
         else -> symbol.toIntOrNull()?.let { onAction(CalculatorAction.Number(it)) }
     }
 }
-
 
 // -----------------------------------------------------------------------------
 // --- Previews ---
 // -----------------------------------------------------------------------------
 
-@Preview(showBackground = true, name = "Light Mode Portrait")
+@Preview(showBackground = true, name = "Dark Mode Scientific Portrait")
 @Composable
-fun CalculatorScreenPreviewLight() {
-    ICalcTheme(darkTheme = false) {
-        val state = CalculatorState(number1 = "12,345", mode = CalculatorMode.Scientific, number2 = "*2")
-        PortraitCalculatorLayout(state = state, onAction = {}, navController = rememberNavController())
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Mode Portrait")
-@Composable
-fun CalculatorScreenPreviewDark() {
+fun CalculatorScreenPreview() {
     ICalcTheme(darkTheme = true) {
-        val state = CalculatorState(number1 = "987.6", mode = CalculatorMode.Scientific, isShifted = true)
-        PortraitCalculatorLayout(state = state, onAction = {}, navController = rememberNavController())
+        PortraitCalculatorLayout(state = CalculatorState(mode = CalculatorMode.Scientific), onAction = {}, navController = rememberNavController())
     }
 }
 
@@ -361,7 +312,6 @@ fun CalculatorScreenPreviewDark() {
 @Composable
 fun CalculatorScreenPreviewLandscape() {
     ICalcTheme(darkTheme = true) {
-        val state = CalculatorState(number1 = "1.23E4", mode = CalculatorMode.Scientific)
-        LandscapeCalculatorLayout(state = state, onAction = {})
+        LandscapeCalculatorLayout(state = CalculatorState(mode = CalculatorMode.Scientific), onAction = {})
     }
 }
