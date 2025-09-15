@@ -1,24 +1,44 @@
 package com.hatcorp.icalc.calculator
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.math.*
+import com.hatcorp.icalc.data.HistoryRepository
+import kotlinx.coroutines.launch
 
-class CalculatorViewModel : ViewModel() {
+class CalculatorViewModel(private val historyRepository: HistoryRepository) : ViewModel() {
 
     private val _state = MutableStateFlow(CalculatorState())
     val state = _state.asStateFlow()
-
+    init {
+        // Load history on startup
+        viewModelScope.launch {
+            historyRepository.historyFlow.collect { historyList ->
+                _state.update { it.copy(history = historyList) }
+            }
+        }
+    }
     fun onAction(action: CalculatorAction) {
         when (action) {
+            CalculatorAction.ClearHistory -> viewModelScope.launch {
+                historyRepository.saveHistory(emptyList())
+            }
             is CalculatorAction.Number -> enterNumber(action.number)
             is CalculatorAction.Operation -> enterOperation(action.operation)
             is CalculatorAction.Scientific -> performScientificOperation(action.operation)
             is CalculatorAction.Decimal -> enterDecimal()
             is CalculatorAction.Calculate -> performCalculation()
-            is CalculatorAction.Clear -> _state.value = CalculatorState()
+            is CalculatorAction.Clear -> _state.update {
+                it.copy(
+                    number1 = "",
+                    number2 = "",
+                    operation = null
+                )
+            }
             is CalculatorAction.Delete -> performDeletion() // Placeholder for AC/Delete logic
             is CalculatorAction.ToggleMode ->
                 _state.update {
@@ -175,7 +195,10 @@ class CalculatorViewModel : ViewModel() {
         }
 
         val equation = "${_state.value.number1} ${operation?.symbol} ${_state.value.number2} = $resultString"
-
+        viewModelScope.launch {
+            val updatedHistory = listOf(equation) + _state.value.history
+            historyRepository.saveHistory(updatedHistory)
+        }
         _state.update {
             it.copy(
                 number1 = resultString,
@@ -186,7 +209,16 @@ class CalculatorViewModel : ViewModel() {
         }
     }
 
-
+    // ViewModel Factory to provide the repository
+    class CalculatorViewModelFactory(private val repository: HistoryRepository) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(CalculatorViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return CalculatorViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
     private fun performDeletion() {
         _state.update {
             if (it.number2.isNotBlank()) {

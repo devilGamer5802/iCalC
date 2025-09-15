@@ -22,18 +22,17 @@ data class UtilityInfo(val name: String, val icon: ImageVector, val route: Strin
 
 // Define all our utilities in one place
 val utilityCategories = listOf(
-    UtilityInfo("Calculator", Icons.Outlined.Calculate, AppRoutes.CALCULATOR), // Added for completeness
     UtilityInfo("Loan", Icons.Outlined.AccountBalance, AppRoutes.LOAN_CALCULATOR),
     UtilityInfo("Investment", Icons.Outlined.TrendingUp, AppRoutes.INVESTMENT_CALCULATOR),
-    UtilityInfo("Currency", Icons.Outlined.AttachMoney, AppRoutes.CURRENCY_CONVERTER),
-    UtilityInfo("Length", Icons.Outlined.Straighten, "unit_converter/Length"),
-    UtilityInfo("Mass", Icons.Outlined.Scale, "unit_converter/Mass"),
+    UtilityInfo("Currency", Icons.Outlined.AttachMoney, "unified_converter/Currency"),
+    UtilityInfo("Length", Icons.Outlined.Straighten, "unified_converter/Length"),
+    UtilityInfo("Mass", Icons.Outlined.Scale, "unified_converter/Mass"),
     UtilityInfo("BMI", Icons.Outlined.MonitorHeart, AppRoutes.BMI_CALCULATOR),
     UtilityInfo("GST", Icons.Outlined.ReceiptLong, AppRoutes.GST_CALCULATOR),
     UtilityInfo("Date", Icons.Outlined.DateRange, AppRoutes.DATE_CALCULATOR),
-    UtilityInfo("Data", Icons.Outlined.DataObject, "unit_converter/Data"),
-    UtilityInfo("Speed", Icons.Outlined.Speed, "unit_converter/Speed"),
-    UtilityInfo("Temperature", Icons.Outlined.Thermostat, "unit_converter/Temperature")
+    UtilityInfo("Data", Icons.Outlined.DataObject, "unified_converter/Data"),
+    UtilityInfo("Speed", Icons.Outlined.Speed, "unified_converter/Speed"),
+    UtilityInfo("Temperature", Icons.Outlined.Thermostat, "unified_converter/Temperature")
 )
 
 

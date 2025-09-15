@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -14,16 +16,25 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import java.text.NumberFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GstCalculatorScreen() {
+fun GstCalculatorScreen(navController: NavController) {
     val viewModel = viewModel<GstViewModel>()
     val state by viewModel.state.collectAsState()
     val currencyFormat = NumberFormat.getCurrencyInstance(java.util.Locale("en", "IN"))
 
-    Scaffold(topBar = { TopAppBar(title = { Text("GST Calculator") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("GST Calculator") },
+        navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        }) }) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             OutlinedTextField(
                 value = state.amount,
