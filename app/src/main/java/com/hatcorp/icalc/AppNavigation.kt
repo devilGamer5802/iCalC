@@ -1,7 +1,7 @@
 package com.hatcorp.icalc
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -13,7 +13,6 @@ import com.hatcorp.icalc.converter.UnitConverterViewModel // New ViewModel
 // CalculatorScreen is likely in com.hatcorp.icalc package (MainActivity.kt)
 import com.hatcorp.icalc.calculator.CalculatorViewModel
 import com.hatcorp.icalc.converter.UnifiedConverterScreen
-import com.hatcorp.icalc.currency.CurrencyConverterScreen
 //import com.hatcorp.icalc.finance.InvestmentCalculatorScreen
 import com.hatcorp.icalc.finance.LoanCalculatorScreen
 import com.hatcorp.icalc.finance.BmiCalculatorScreen
@@ -39,12 +38,16 @@ object AppRoutes {
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    calculatorViewModel: CalculatorViewModel
 ) {
+    val application = LocalContext.current.applicationContext as ICalcApplication
+    val calculatorViewModel: CalculatorViewModel = viewModel(
+        factory = CalculatorViewModel.CalculatorViewModelFactory(application.historyRepository)
+    )
     NavHost(
         navController = navController,
         startDestination = AppRoutes.CALCULATOR
     ) {
+
         composable(AppRoutes.CALCULATOR) {
             MainScreen(
                 navController = navController,
@@ -62,7 +65,7 @@ fun AppNavHost(
             UnitConverterScreen(viewModel = viewModel)
         }
         composable(AppRoutes.CURRENCY_CONVERTER) {
-            CurrencyConverterScreen()
+            //CurrencyConverterScreen()
         }
         composable(AppRoutes.LOAN_CALCULATOR) {
             LoanCalculatorScreen(navController = navController)
@@ -70,9 +73,9 @@ fun AppNavHost(
         composable(AppRoutes.INVESTMENT_CALCULATOR) {
             //InvestmentCalculatorScreen()
         }
-        composable(AppRoutes.BMI_CALCULATOR) { BmiCalculatorScreen() }
-        composable(AppRoutes.GST_CALCULATOR) { GstCalculatorScreen() }
-        composable(AppRoutes.DATE_CALCULATOR) { DateCalculatorScreen() }
+        composable(AppRoutes.BMI_CALCULATOR) { BmiCalculatorScreen(navController = navController) }
+        composable(AppRoutes.GST_CALCULATOR) { GstCalculatorScreen(navController = navController) }
+        composable(AppRoutes.DATE_CALCULATOR) { DateCalculatorScreen(navController = navController) }
         composable(AppRoutes.UNIFIED_CONVERTER) { backStackEntry ->
             val category = backStackEntry.arguments?.getString("category")
             UnifiedConverterScreen(navController = navController, categoryName = category)

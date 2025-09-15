@@ -11,14 +11,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BmiCalculatorScreen() {
+fun BmiCalculatorScreen(navController: NavController) {
     val viewModel = viewModel<BmiViewModel>()
     val state by viewModel.state.collectAsState()
 
-    Scaffold(topBar = { TopAppBar(title = { Text("BMI Calculator") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("BMI Calculator") },
+        navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        }) }) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

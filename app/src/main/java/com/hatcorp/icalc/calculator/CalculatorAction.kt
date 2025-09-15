@@ -41,4 +41,5 @@ sealed interface CalculatorAction {
     data object Shift : CalculatorAction
 
     data object ToggleAngleUnit : CalculatorAction
+    data object ClearHistory : CalculatorAction
 }

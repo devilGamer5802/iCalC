@@ -1,6 +1,8 @@
 package com.hatcorp.icalc.finance
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -9,12 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateCalculatorScreen() {
+fun DateCalculatorScreen(navController: NavController) {
     val viewModel = viewModel<DateViewModel>()
     val state by viewModel.state.collectAsState()
     val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
@@ -33,7 +36,15 @@ fun DateCalculatorScreen() {
         )
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Date Calculator") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Date Calculator") },
+        navigationIcon = {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+        }) }) { padding ->
         Column(
             modifier = Modifier.padding(padding).padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

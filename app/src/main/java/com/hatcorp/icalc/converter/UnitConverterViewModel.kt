@@ -63,17 +63,17 @@ class UnitConverterViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private fun handleKeyPress(key: String) {
         if (_state.value.activeInput != ActiveInput.FROM) return // Only FROM is editable
 
-        var current = _state.value.fromValue
+        var currentVal = _state.value.fromValue
         when (key) {
-            "C" -> current = "0"
-            "DEL" -> current = if (current.length > 1) current.dropLast(1) else "0"
-            "." -> if (!current.contains(".")) current += "."
+            "C" -> currentVal = "0"
+            "DEL" -> currentVal = if (currentVal.length > 1) currentVal.dropLast(1) else "0"
+            "." -> if (!currentVal.contains(".")) currentVal += "."
             else -> { // Digit
-                if (current == "0") current = key
-                else if (current.length < 15) current += key
+                if (currentVal == "0") currentVal = key
+                else if (currentVal.length < 15) currentVal += key
             }
         }
-        _state.update { it.copy(fromValue = current) }
+        _state.update { it.copy(fromValue = currentVal) }
     }
 
     private fun convert() {
