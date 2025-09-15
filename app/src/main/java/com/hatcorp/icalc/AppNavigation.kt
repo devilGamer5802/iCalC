@@ -16,6 +16,7 @@ import com.hatcorp.icalc.currency.CurrencyConverterScreen
 //import com.hatcorp.icalc.finance.InvestmentCalculatorScreen
 import com.hatcorp.icalc.finance.LoanCalculatorScreen
 import com.hatcorp.icalc.finance.BmiCalculatorScreen
+import com.hatcorp.icalc.finance.DateCalculatorScreen
 //import com.hatcorp.icalc.finance.DateCalculatorScreen
 import com.hatcorp.icalc.finance.GstCalculatorScreen
 // Removed duplicate import for com.hatcorp.icalc.converter.ConverterListScreen as it's already imported above
@@ -63,13 +64,13 @@ fun AppNavHost(
             CurrencyConverterScreen()
         }
         composable(AppRoutes.LOAN_CALCULATOR) {
-            LoanCalculatorScreen()
+            LoanCalculatorScreen(navController = navController)
         }
         composable(AppRoutes.INVESTMENT_CALCULATOR) {
             //InvestmentCalculatorScreen()
         }
         composable(AppRoutes.BMI_CALCULATOR) { BmiCalculatorScreen() }
         composable(AppRoutes.GST_CALCULATOR) { GstCalculatorScreen() }
-        //composable(AppRoutes.DATE_CALCULATOR) { DateCalculatorScreen() }
+        composable(AppRoutes.DATE_CALCULATOR) { DateCalculatorScreen() }
     }
 }

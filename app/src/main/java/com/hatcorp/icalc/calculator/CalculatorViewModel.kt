@@ -20,15 +20,17 @@ class CalculatorViewModel : ViewModel() {
             is CalculatorAction.Calculate -> performCalculation()
             is CalculatorAction.Clear -> _state.value = CalculatorState()
             is CalculatorAction.Delete -> performDeletion() // Placeholder for AC/Delete logic
-            is CalculatorAction.ToggleMode -> {
+            is CalculatorAction.ToggleMode ->
                 _state.update {
                     it.copy(
                         mode = if (it.mode == CalculatorMode.Basic) CalculatorMode.Scientific else CalculatorMode.Basic
                     )
-                }
+
             }
+            is CalculatorAction.Shift -> _state.update { it.copy(isShifted = !it.isShifted) }
             is CalculatorAction.ShowHistory -> _state.update { it.copy(isHistoryVisible = true) }
             is CalculatorAction.HideHistory -> _state.update { it.copy(isHistoryVisible = false) }
+
         }
     }
 
@@ -71,6 +73,10 @@ class CalculatorViewModel : ViewModel() {
             }
             return
         }
+        if (operation is ScientificOperation.E) {
+            _state.update { it.copy(number1 = Math.E.toString().take(15)) }
+            return
+        }
 
         val targetNumber = _state.value.number1.toDoubleOrNull() ?: return
 
@@ -78,11 +84,25 @@ class CalculatorViewModel : ViewModel() {
             ScientificOperation.Sin -> sin(Math.toRadians(targetNumber))
             ScientificOperation.Cos -> cos(Math.toRadians(targetNumber))
             ScientificOperation.Tan -> tan(Math.toRadians(targetNumber))
+            ScientificOperation.Asin -> Math.toDegrees(asin(targetNumber))
+            ScientificOperation.Acos -> Math.toDegrees(acos(targetNumber))
+            ScientificOperation.Atan -> Math.toDegrees(atan(targetNumber))
             ScientificOperation.Log -> log10(targetNumber)
             ScientificOperation.Ln -> ln(targetNumber)
-            ScientificOperation.Sqrt -> sqrt(targetNumber)
             ScientificOperation.Square -> targetNumber.pow(2)
-            ScientificOperation.Pi -> return // Already handled
+            ScientificOperation.Cube -> targetNumber.pow(3)
+            ScientificOperation.EPower -> exp(targetNumber)
+            ScientificOperation.TenPower -> 10.0.pow(targetNumber)
+            ScientificOperation.Sqrt -> sqrt(targetNumber)
+            ScientificOperation.Cbrt -> cbrt(targetNumber)
+            ScientificOperation.Factorial -> {
+                if (targetNumber >= 0 && targetNumber == targetNumber.toInt().toDouble()) {
+                    (1..targetNumber.toInt()).fold(1L) { acc, i -> acc * i }.toDouble()
+                } else Double.NaN
+            }
+            ScientificOperation.Pi -> Math.PI
+            ScientificOperation.E -> Math.E
+            else -> Double.NaN
         }
 
         _state.update {
