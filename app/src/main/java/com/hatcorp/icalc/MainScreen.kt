@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.hatcorp.icalc.calculator.CalculatorViewModel
 import com.hatcorp.icalc.converter.ConverterListScreen
+import com.hatcorp.icalc.whiteboard.WhiteboardScreen
 
 @Composable
 fun MainScreen(
@@ -23,7 +24,8 @@ fun MainScreen(
     calculatorViewModel: CalculatorViewModel
 ) {
     var selectedIndex by remember { mutableStateOf(0) }
-    val pages = listOf("Calculator", "Converter")
+    var tabIndex by remember { mutableStateOf(0) }
+    val pages = listOf("Calculator", "Converter","Whiteboard")
 
     Scaffold(
         topBar = {
@@ -42,6 +44,7 @@ fun MainScreen(
                     onAction = calculatorViewModel::onAction
                 )
                 1 -> ConverterListScreen(navController = navController)
+                2 -> WhiteboardScreen()
             }
         }
     }
